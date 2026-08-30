@@ -151,7 +151,9 @@ namespace MSDOSRemake
                         case "dir":
                             foreach (string item in Directory.GetDirectories(realDir))
                             {
-                                Console.WriteLine($"[DIR] {item}");
+                                string[] itemPath = item.Split("\\");
+                                string itemName = itemPath[^1];
+                                Console.WriteLine($"[DIR] {itemName}");
                             }
                             foreach (string item in Directory.GetFiles(realDir))
                             {
