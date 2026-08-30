@@ -9,7 +9,7 @@ namespace MSDOSRemake
         public static void Main()
         {
             Console.WriteLine("Starting MS-DOS...");
-            Console.WriteLine("MS-DOS (Version 1.0.1) by JustACasualGamer on GitHub.");
+            Console.WriteLine("MS-DOS (Version 1.0.2) by JustACasualGamer on GitHub.");
             running = true;
             
             while (running)
