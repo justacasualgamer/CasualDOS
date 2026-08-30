@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace MSDOSRemake
 {
     public class Program
@@ -189,7 +191,7 @@ namespace MSDOSRemake
                                 Console.WriteLine("The syntax of the command is incorrect.");
                             }
                             break;
-                        case "cd":
+                        case "cd" or "chdir":
                             if (command.Length > 1)
                             {
                                 try
@@ -197,24 +199,37 @@ namespace MSDOSRemake
                                     if (string.Join(" ", command[1..]) != ".." && string.Join(" ", command[1..]) != ".")
                                     {
                                         Directory.SetCurrentDirectory(realDir + string.Join(" ", command[1..]));
-                                        currentDir += string.Join(" ", command[1..]);
-                                        realDir += string.Join(" ", command[1..]);
+                                        currentDir += string.Join(" ", command[1..]) + "\\";
+                                        realDir += string.Join(" ", command[1..]) + "\\";
                                     } else if (string.Join(" ", command[1..]) == "..")
                                     {
                                         if (currentDir != "Z:\\")
                                         {
                                             string[] direcs = currentDir.Split("\\");
                                             string[] realDirecs = realDir.Split("\\");
-                                            direcs[^1] = "";
-                                            realDirecs[^1] = "";
-                                            Directory.SetCurrentDirectory(string.Join("\\", realDirecs));
-                                            currentDir = string.Join("\\", direcs);
-                                            realDir += string.Join("\\", realDirecs);
+                                            Directory.SetCurrentDirectory(string.Join("\\", realDirecs[..^2]));
+                                            currentDir = string.Join("\\", direcs[..^2]) + "\\";
+                                            realDir = string.Join("\\", realDirecs[..^2]) + "\\";
                                         }
                                     }
                                 } catch (DirectoryNotFoundException)
                                 {
-                                    Console.WriteLine("No directory found.");
+                                    try
+                                    {
+                                        string[] intendedDirArray = string.Join(" ", command[1..]).Split("\\");
+                                        if (intendedDirArray[0] == "Z:")
+                                        {
+                                            intendedDirArray[0] = "";
+                                        } else
+                                        {
+                                            throw new DirectoryNotFoundException();
+                                        }
+                                        string intendedDir = DOSDir + string.Join("\\", intendedDirArray);
+                                        Directory.SetCurrentDirectory(intendedDir);
+                                    } catch (DirectoryNotFoundException)
+                                    {
+                                        Console.WriteLine("No directory found.");
+                                    }
                                 } catch (PathTooLongException)
                                 {
                                     Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
@@ -226,11 +241,26 @@ namespace MSDOSRemake
                                     Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
                                 } catch (IOException)
                                 {
-                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                    try
+                                    {
+                                        string[] intendedDirArray = string.Join(" ", command[1..]).Split("\\");
+                                        if (intendedDirArray[0] == "Z:")
+                                        {
+                                            intendedDirArray[0] = "";
+                                        } else
+                                        {
+                                            throw new DirectoryNotFoundException();
+                                        }
+                                        string intendedDir = DOSDir + string.Join("\\", intendedDirArray);
+                                        Directory.SetCurrentDirectory(intendedDir);
+                                    } catch (DirectoryNotFoundException)
+                                    {
+                                        Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                    }
                                 }
                             } else
                             {
-                                Console.WriteLine(currentDir[^1]);
+                                Console.WriteLine(currentDir);
                             }
                             
                             break;
@@ -243,7 +273,36 @@ namespace MSDOSRemake
                         default:
                             if (command[0] != "")
                             {
-                                Console.WriteLine("Bad command: " + command[0]);
+                                if (File.Exists(command[0]) || File.Exists(command[0] + ".exe"))
+                                {
+                                    var process = new Process
+                                    {
+                                        StartInfo = new ProcessStartInfo
+                                        {
+                                            FileName = command[0],
+                                            Arguments = string.Join(" ", command[1..]),
+                                            CreateNoWindow = true,
+                                            UseShellExecute = false,
+                                            RedirectStandardOutput = true,
+                                            RedirectStandardError = true
+                                        }
+                                    };
+                                    process.OutputDataReceived += (sender, e) =>
+                                    {
+                                        if (e.Data != null) Console.WriteLine(e.Data);
+                                    };
+                                    process.ErrorDataReceived += (sender, e) =>
+                                    {
+                                        if (e.Data != null) Console.WriteLine(e.Data);
+                                    };
+                                    process.Start();
+                                    process.BeginOutputReadLine();
+                                    process.BeginErrorReadLine();
+                                    process.WaitForExit();
+                                } else
+                                {
+                                    Console.WriteLine("Bad command: " + command[0]);
+                                }
                             }
                             break;
                     }
