@@ -9,7 +9,7 @@ namespace MSDOSRemake
         public static void Main()
         {
             Console.WriteLine("Starting MS-DOS...");
-            Console.WriteLine("MS-DOS (Version 1.0.2) by JustACasualGamer on GitHub.");
+            Console.WriteLine("MS-DOS (Version 1.0.3) by JustACasualGamer on GitHub.");
             running = true;
             
             while (running)
@@ -207,7 +207,7 @@ namespace MSDOSRemake
                                             string[] realDirecs = realDir.Split("\\");
                                             direcs[^1] = "";
                                             realDirecs[^1] = "";
-                                            Directory.SetCurrentDirectory(string.Join("\\", direcs));
+                                            Directory.SetCurrentDirectory(string.Join("\\", realDirecs));
                                             currentDir = string.Join("\\", direcs);
                                             realDir += string.Join("\\", realDirecs);
                                         }
@@ -222,6 +222,9 @@ namespace MSDOSRemake
                                 {
                                     Console.WriteLine("Access is denied.");
                                 } catch (ArgumentException)
+                                {
+                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                } catch (IOException)
                                 {
                                     Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
                                 }
