@@ -1,4 +1,4 @@
-﻿namespace MSDOSRemake
+namespace MSDOSRemake
 {
     public class Program
     {
@@ -9,7 +9,7 @@
         public static void Main()
         {
             Console.WriteLine("Starting MS-DOS...");
-            Console.WriteLine("MS-DOS Remake (Version 1.0) by JustACasualGamer on GitHub.");
+            Console.WriteLine("MS-DOS (Version 1.0.1) by JustACasualGamer on GitHub.");
             running = true;
             
             while (running)
@@ -236,7 +236,10 @@
                             running = false;
                             break;
                         default:
-                            Console.WriteLine("Bad command: " + command[0]);
+                            if (command[0] != "")
+                            {
+                                Console.WriteLine("Bad command: " + command[0]);
+                            }
                             break;
                     }
                 }
