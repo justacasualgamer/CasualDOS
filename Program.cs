@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace MSDOSRemake
+namespace CasualDOS
 {
     public class Program
     {
@@ -11,7 +11,7 @@ namespace MSDOSRemake
         static string realDir = Directory.GetCurrentDirectory() + "\\";
         public static void Main()
         {
-            Console.WriteLine("JACG-DOS [Version 1.3]");
+            Console.WriteLine("CasualDOS [Version 1.3]");
             Console.WriteLine("Project at https://github.com/justacasualgamer/MS-DOS.");
             running = true;
             
@@ -28,7 +28,7 @@ namespace MSDOSRemake
                     switch (command[0].ToLower())
                     {
                         case "ver":
-                            Console.WriteLine("JACG-DOS [Version 1.3]");
+                            Console.WriteLine("CasualDOS [Version 1.3]");
                             break;
                         case "echo":
                             string fulltext = string.Join(" ", command[1..]);
