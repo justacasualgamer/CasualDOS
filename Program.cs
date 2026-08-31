@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace MSDOSRemake
@@ -10,8 +11,8 @@ namespace MSDOSRemake
         static string realDir = Directory.GetCurrentDirectory() + "\\";
         public static void Main()
         {
-            Console.WriteLine("Starting MS-DOS...");
-            Console.WriteLine("MS-DOS (Version 1.2) by JustACasualGamer on GitHub.");
+            Console.WriteLine("JACG-DOS [Version 1.3]");
+            Console.WriteLine("Project at https://github.com/justacasualgamer/MS-DOS.");
             running = true;
             
             while (running)
@@ -26,6 +27,9 @@ namespace MSDOSRemake
                     string[] command = input.Split(" ");
                     switch (command[0].ToLower())
                     {
+                        case "ver":
+                            Console.WriteLine("JACG-DOS [Version 1.3]");
+                            break;
                         case "echo":
                             string fulltext = string.Join(" ", command[1..]);
                             if (fulltext.Contains('>'))
@@ -296,8 +300,49 @@ namespace MSDOSRemake
                                 }
                             }
                             break;
+                        case "start":
+                            try
+                            {
+                                Process process = new()
+                                {
+                                    StartInfo = new ProcessStartInfo()
+                                    {
+                                        FileName = command[1],
+                                        Arguments = string.Join(" ", command[2..])
+                                    }
+                                };
+                                process.Start();
+                            } catch (InvalidOperationException)
+                            {
+                                Console.WriteLine("Specify a program.");
+                            } catch (Win32Exception w32ex)
+                            {
+                                if (w32ex.NativeErrorCode == 2)
+                                {
+                                    Console.WriteLine("The system cannot find the file specified.");
+                                } else if (w32ex.NativeErrorCode == 3)
+                                {
+                                    Console.WriteLine("The specified path is invalid.");
+                                } else if (w32ex.NativeErrorCode == 5)
+                                {
+                                    Console.WriteLine("Access is denied.");
+                                } else if (w32ex.NativeErrorCode == 193)
+                                {
+                                    Console.WriteLine("Attempted to run a non-runnable file.");
+                                } else if (w32ex.NativeErrorCode == 1155)
+                                {
+                                    Console.WriteLine("The file extension is not supported.");
+                                }
+                            } catch (IndexOutOfRangeException)
+                            {
+                                Console.WriteLine("Specify a program.");
+                            } catch (Exception)
+                            {
+                                Console.WriteLine("An unknown error occurred.");
+                            }
+                            break;
                         case "help":
-                            Console.WriteLine("List of commands:\nHELP  Displays this help message.\nMKDIR/MD   Makes a new directory.\nRMDIR/RD    Removes an empty directory. Directory must be empty.\nECHO  Echoes text on the screen.\nMORE    Reads text from a file, one line at a time.\nTYPE       Writes all text from a file to the screen.\nCD     Changes the current working directory.\nEXIT\nDEL       Deletes a file.\nDIR     Shows all files and directories in the working directory.");
+                            Console.WriteLine("List of commands:\nHELP  Displays this help message.\nMKDIR/MD   Makes a new directory.\nRMDIR/RD    Removes an empty directory. Directory must be empty.\nECHO  Echoes text on the screen.\nMORE    Reads text from a file, one line at a time.\nTYPE       Writes all text from a file to the screen.\nCD     Changes the current working directory.\nEXIT\nDEL       Deletes a file.\nDIR     Shows all files and directories in the working directory.\nSTART        Starts a program.");
                             break;
                         case "exit":
                             running = false;
@@ -311,8 +356,8 @@ namespace MSDOSRemake
                                     {
                                         StartInfo = new ProcessStartInfo
                                         {
-                                            FileName = command[0],
-                                            Arguments = string.Join(" ", command[1..]),
+                                            FileName = "cmd",
+                                            Arguments = "/c " + string.Join(" ", command),
                                             CreateNoWindow = true,
                                             UseShellExecute = false,
                                             RedirectStandardOutput = true,
