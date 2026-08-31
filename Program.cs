@@ -11,7 +11,7 @@ namespace MSDOSRemake
         public static void Main()
         {
             Console.WriteLine("Starting MS-DOS...");
-            Console.WriteLine("MS-DOS (Version 1.0.3) by JustACasualGamer on GitHub.");
+            Console.WriteLine("MS-DOS (Version 1.2) by JustACasualGamer on GitHub.");
             running = true;
             
             while (running)
@@ -52,6 +52,9 @@ namespace MSDOSRemake
                                 {
                                     Console.WriteLine("The specified file is being used by another process or is blocked.");
                                 }
+                            } else
+                            {
+                                Console.WriteLine(string.Join(" ", command[1..]));
                             }
                             break;
                         case "more":
@@ -262,10 +265,39 @@ namespace MSDOSRemake
                             {
                                 Console.WriteLine(currentDir);
                             }
-                            
+                            break;
+                        case "del":
+                            foreach (string i in command[1..])
+                            {
+                                try
+                                {
+                                    if (File.Exists(i))
+                                    {
+                                        File.Delete(i);
+                                    } else
+                                    {
+                                        throw new DirectoryNotFoundException();
+                                    }
+                                } catch (ArgumentException)
+                                {
+                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                } catch (DirectoryNotFoundException)
+                                {
+                                    Console.WriteLine("The specified path is invalid.");
+                                } catch (UnauthorizedAccessException)
+                                {
+                                    Console.WriteLine("Access is denied.");
+                                } catch (PathTooLongException)
+                                {
+                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                } catch (IOException)
+                                {
+                                    Console.WriteLine("An unknown error occurred.");
+                                }
+                            }
                             break;
                         case "help":
-                            Console.WriteLine("List of commands:\nHELP  Displays this help message.\nMKDIR/MD   Makes a new directory.\nRMDIR/RD    Removes an empty directory. Directory must be empty.\nECHO  Echoes text on the screen.\nMORE    Reads text from a file.\nCD     Changes the current working directory.");
+                            Console.WriteLine("List of commands:\nHELP  Displays this help message.\nMKDIR/MD   Makes a new directory.\nRMDIR/RD    Removes an empty directory. Directory must be empty.\nECHO  Echoes text on the screen.\nMORE    Reads text from a file, one line at a time.\nTYPE       Writes all text from a file to the screen.\nCD     Changes the current working directory.\nEXIT\nDEL       Deletes a file.\nDIR     Shows all files and directories in the working directory.");
                             break;
                         case "exit":
                             running = false;
@@ -273,7 +305,7 @@ namespace MSDOSRemake
                         default:
                             if (command[0] != "")
                             {
-                                if (File.Exists(command[0]) || File.Exists(command[0] + ".exe"))
+                                if (File.Exists(command[0]) || File.Exists(command[0] + ".exe") || File.Exists(command[0] + ".bat"))
                                 {
                                     var process = new Process
                                     {
