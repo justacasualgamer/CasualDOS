@@ -1,3 +1,4 @@
+#pragma warning disable CA1862
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -9,9 +10,19 @@ namespace CasualDOS
         static string currentDir = @"Z:\";
         static readonly string DOSDir = Directory.GetCurrentDirectory() + "\\";
         static string realDir = Directory.GetCurrentDirectory() + "\\";
+        static Dictionary<string, string> variables = new();
+        static readonly string __version__ = "CasualDOS [Version 2.0]";
+        static readonly string __changelogs__ = @"Version 2.0 changelogs
+- Added this changelogs option.
+- Added copy (copy con will be added in a later update).
+- Added variables (set and %variable% for echo)
+- 480 lines
+- Extra line just for good measure
+- Extra line just for good measure
+- Extra line just for good measure";
         public static void Main()
         {
-            Console.WriteLine("CasualDOS [Version 1.3]");
+            Console.WriteLine(__version__);
             Console.WriteLine("Project at https://github.com/justacasualgamer/MS-DOS.");
             running = true;
             
@@ -28,10 +39,42 @@ namespace CasualDOS
                     switch (command[0].ToLower())
                     {
                         case "ver":
-                            Console.WriteLine("CasualDOS [Version 1.3]");
+                            Console.WriteLine(__version__);
+                            break;
+                        case "changelogs":
+                            Console.WriteLine(__changelogs__);
                             break;
                         case "echo":
                             string fulltext = string.Join(" ", command[1..]);
+                            // ah shit, here comes the variable checks (super annoying to make)
+                            if (fulltext.Contains('%'))
+                            {
+                                string modifiedText = "";
+                                string proposedVarKey = "";
+                                string test = fulltext;
+                                if (fulltext.Contains('>')) test = fulltext[..fulltext.IndexOf('>')];
+                                for (int i=0; i<test.Length; i++)
+                                {
+                                    proposedVarKey = "";
+                                    if (fulltext[i] != '%') modifiedText += fulltext[i];
+                                    else
+                                    {
+                                        bool err = false;
+                                        i++;
+                                        try
+                                        {
+                                            for (; fulltext[i] != '%'; i++) proposedVarKey += fulltext[i];
+                                        } catch (IndexOutOfRangeException)
+                                        {
+                                            err = true;
+                                        }
+                                        if (!err) modifiedText += variables.GetValueOrDefault(proposedVarKey, $"%{proposedVarKey}%");
+                                        else modifiedText += $"%{proposedVarKey}";
+                                    }
+                                }
+                                if (fulltext.Contains('>')) fulltext = modifiedText + fulltext[fulltext.IndexOf('>')..]; 
+                                else fulltext = modifiedText;
+                            }
                             if (fulltext.Contains('>'))
                             {
                                 int indexOfRedir = fulltext.IndexOf('>');
@@ -58,7 +101,7 @@ namespace CasualDOS
                                 }
                             } else
                             {
-                                Console.WriteLine(string.Join(" ", command[1..]));
+                                Console.WriteLine(fulltext);
                             }
                             break;
                         case "more":
@@ -300,6 +343,53 @@ namespace CasualDOS
                                 }
                             }
                             break;
+                        case "copy":
+                            try
+                            {
+                                File.Copy(command[1], command[2]);
+                            } catch (UnauthorizedAccessException)
+                            {
+                                Console.WriteLine("Access is denied.");
+                            } catch (ArgumentException)
+                            {
+                                Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                            } catch (NotSupportedException)
+                            {
+                                Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                            } catch (PathTooLongException)
+                            {
+                                Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                            } catch (DirectoryNotFoundException)
+                            {
+                                Console.WriteLine("The specified path is invalid.");
+                            } catch (FileNotFoundException)
+                            {
+                                Console.WriteLine("The specified path is invalid.");
+                            } catch (IOException)
+                            {
+                                Console.WriteLine("An unknown error occurred.");
+                            }
+                            break;
+                        case "set":
+                            try
+                            {
+                                string varKey = input[4..input.IndexOf('=')];
+                                string varValue = input[(input.IndexOf('=') + 1)..];
+                                variables[varKey] = varValue;
+                            } catch (ArgumentOutOfRangeException)
+                            {
+                                if (input.Trim().ToLower()=="set")
+                                {
+                                    foreach (string key in variables.Keys)
+                                    {
+                                        Console.WriteLine($"{key}={variables.GetValueOrDefault(key, "")}");
+                                    }
+                                }
+                            } catch (ArgumentNullException)
+                            {
+                                Console.WriteLine("The syntax of the command is incorrect.");
+                            }
+                            break;
                         case "start":
                             try
                             {
@@ -357,7 +447,7 @@ namespace CasualDOS
                                         StartInfo = new ProcessStartInfo
                                         {
                                             FileName = "cmd",
-                                            Arguments = "/c " + string.Join(" ", command),
+                                            Arguments = "/c " + input,
                                             CreateNoWindow = true,
                                             UseShellExecute = false,
                                             RedirectStandardOutput = true,
