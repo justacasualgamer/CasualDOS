@@ -10,16 +10,10 @@ namespace CasualDOS
         static string currentDir = @"Z:\";
         static readonly string DOSDir = Directory.GetCurrentDirectory() + "\\";
         static string realDir = Directory.GetCurrentDirectory() + "\\";
-        static Dictionary<string, string> variables = new();
-        static readonly string __version__ = "CasualDOS [Version 2.0]";
-        static readonly string __changelogs__ = @"Version 2.0 changelogs
-- Added this changelogs option.
-- Added copy (copy con will be added in a later update).
-- Added variables (set and %variable% for echo)
-- 480 lines
-- Extra line just for good measure
-- Extra line just for good measure
-- Extra line just for good measure";
+        static readonly Dictionary<string, string> variables = [];
+        static readonly string __version__ = "CasualDOS [Version 2.0.1]";
+        static readonly string __changelogs__ = @"Version 2.0.1 changelogs
+- Added copy con (btw this code is now 555 lines long :])";
         public static void Main()
         {
             Console.WriteLine(__version__);
@@ -129,9 +123,9 @@ namespace CasualDOS
                                 } catch (UnauthorizedAccessException)
                                 {
                                     Console.WriteLine("Access is denied.");
-                                } catch (IOException)
+                                } catch (Exception)
                                 {
-                                    Console.WriteLine("An error occurred.");
+                                    Console.WriteLine("Unknown error.");
                                 }
                             } else
                             {
@@ -161,9 +155,9 @@ namespace CasualDOS
                                 } catch (UnauthorizedAccessException)
                                 {
                                     Console.WriteLine("Access is denied.");
-                                } catch (IOException)
+                                } catch (Exception)
                                 {
-                                    Console.WriteLine("An error occurred.");
+                                    Console.WriteLine("Unknown error.");
                                 }
                             } else
                             {
@@ -193,6 +187,9 @@ namespace CasualDOS
                                     } catch (ArgumentException)
                                     {
                                       Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                    }  catch (Exception)
+                                    {
+                                        Console.WriteLine("Unknown error.");
                                     }
                                 }
                             } else
@@ -235,6 +232,9 @@ namespace CasualDOS
                                 } catch (IOException)
                                 {
                                     Console.WriteLine("The directory is not empty.");
+                                } catch (Exception)
+                                {
+                                    Console.WriteLine("Unknown error.");
                                 }
                             } else
                             {
@@ -307,6 +307,9 @@ namespace CasualDOS
                                     {
                                         Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
                                     }
+                                } catch (Exception)
+                                {
+                                    Console.WriteLine("Unknown error.");
                                 }
                             } else
                             {
@@ -337,37 +340,109 @@ namespace CasualDOS
                                 } catch (PathTooLongException)
                                 {
                                     Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
-                                } catch (IOException)
+                                } catch (Exception)
                                 {
-                                    Console.WriteLine("An unknown error occurred.");
+                                    Console.WriteLine("Unknown error.");
                                 }
                             }
                             break;
                         case "copy":
-                            try
+                            if (command.Length < 3)
                             {
-                                File.Copy(command[1], command[2]);
-                            } catch (UnauthorizedAccessException)
+                                Console.WriteLine("The syntax of the command is incorrect.");
+                                break;
+                            }
+                            if (command[1] == "con")
                             {
-                                Console.WriteLine("Access is denied.");
-                            } catch (ArgumentException)
+                                if (File.Exists(command[2]))
+                                {
+                                    try
+                                    {
+                                        File.Delete(command[2]);
+                                    } catch (UnauthorizedAccessException)
+                                    {
+                                        Console.WriteLine("Access is denied.");
+                                        break;
+                                    } catch (Exception e) when (e is ArgumentException or PathTooLongException or NotSupportedException)
+                                    {
+                                        Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                        break;
+                                    } catch (Exception e) when (e is DirectoryNotFoundException or FileNotFoundException)
+                                    {
+                                        Console.WriteLine("The specified path is invalid.");
+                                        break;
+                                    } catch (Exception)
+                                    {
+                                        Console.WriteLine("Unknown error.");
+                                        break;
+                                    }
+                                }
+                                Console.WriteLine($"Copying console input to {command[2]}. Type ^C (not Ctrl+C, it just terminates), then Enter to stop.");
+                                bool stopped = false;
+                                bool first = true;
+                                while (!stopped)
+                                {
+                                    
+                                    string? toCopy = null;
+                                    toCopy = Console.ReadLine();
+                                    if (toCopy == "^C") stopped = true;
+                                    try
+                                    {
+                                        if (!stopped) File.AppendAllText(command[2], first ? toCopy : "\r\n" + toCopy);
+                                        first = false;
+                                    } catch (PathTooLongException)
+                                    {
+                                        Console.WriteLine("The path is too long.");
+                                        break;
+                                    } catch (ArgumentException)
+                                    {
+                                        Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                        break;
+                                    } catch (DirectoryNotFoundException)
+                                    {
+                                        Console.WriteLine("The specified path is invalid.");
+                                        break;
+                                    } catch (UnauthorizedAccessException)
+                                    {
+                                        Console.WriteLine("Access is denied.");
+                                        break;
+                                    } catch (IOException)
+                                    {
+                                        Console.WriteLine("The specified file is being used by another process or is blocked.");
+                                        break;
+                                    } catch (Exception)
+                                    {
+                                        Console.WriteLine("Unknown error.");
+                                        break;
+                                    }
+                                }
+                            } else
                             {
-                                Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
-                            } catch (NotSupportedException)
-                            {
-                                Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
-                            } catch (PathTooLongException)
-                            {
-                                Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
-                            } catch (DirectoryNotFoundException)
-                            {
-                                Console.WriteLine("The specified path is invalid.");
-                            } catch (FileNotFoundException)
-                            {
-                                Console.WriteLine("The specified path is invalid.");
-                            } catch (IOException)
-                            {
-                                Console.WriteLine("An unknown error occurred.");
+                                try
+                                {
+                                    File.Copy(command[1], command[2]);
+                                } catch (UnauthorizedAccessException)
+                                {
+                                    Console.WriteLine("Access is denied.");
+                                } catch (ArgumentException)
+                                {
+                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                } catch (NotSupportedException)
+                                {
+                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                } catch (PathTooLongException)
+                                {
+                                    Console.WriteLine("The file name, directory name, or volume label syntax is incorrect.");
+                                } catch (DirectoryNotFoundException)
+                                {
+                                    Console.WriteLine("The specified path is invalid.");
+                                } catch (FileNotFoundException)
+                                {
+                                    Console.WriteLine("The specified path is invalid.");
+                                } catch (Exception)
+                                {
+                                    Console.WriteLine("Unknown error.");
+                                }
                             }
                             break;
                         case "set":
@@ -428,11 +503,11 @@ namespace CasualDOS
                                 Console.WriteLine("Specify a program.");
                             } catch (Exception)
                             {
-                                Console.WriteLine("An unknown error occurred.");
+                                Console.WriteLine("Unknown error.");
                             }
                             break;
                         case "help":
-                            Console.WriteLine("List of commands:\nHELP  Displays this help message.\nMKDIR/MD   Makes a new directory.\nRMDIR/RD    Removes an empty directory. Directory must be empty.\nECHO  Echoes text on the screen.\nMORE    Reads text from a file, one line at a time.\nTYPE       Writes all text from a file to the screen.\nCD     Changes the current working directory.\nEXIT\nDEL       Deletes a file.\nDIR     Shows all files and directories in the working directory.\nSTART        Starts a program.");
+                            Console.WriteLine("List of commands:\r\nHELP  Displays this help message.\r\nMKDIR/MD   Makes a new directory.\r\nRMDIR/RD    Removes an empty directory. Directory must be empty.\r\nECHO  Echoes text on the screen.\r\nMORE    Reads text from a file, one line at a time.\r\nTYPE       Writes all text from a file to the screen.\r\nCD     Changes the current working directory.\r\nEXIT\r\nDEL       Deletes a file.\r\nDIR     Shows all files and directories in the working directory.\r\nSTART        Starts a program.");
                             break;
                         case "exit":
                             running = false;
