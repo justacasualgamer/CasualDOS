@@ -11,9 +11,9 @@ namespace CasualDOS
         static readonly string DOSDir = Directory.GetCurrentDirectory() + "\\";
         static string realDir = Directory.GetCurrentDirectory() + "\\";
         static readonly Dictionary<string, string> variables = [];
-        static readonly string __version__ = "CasualDOS [Version 2.0.1]";
-        static readonly string __changelogs__ = @"Version 2.0.1 changelogs
-- Added copy con (btw this code is now 555 lines long :])";
+        static readonly string __version__ = "CasualDOS [Version 2.0.11]";
+        static readonly string __changelogs__ = @"Version 2.0.11 changelogs
+- Added cls command";
         public static void Main()
         {
             Console.WriteLine(__version__);
@@ -37,6 +37,9 @@ namespace CasualDOS
                             break;
                         case "changelogs":
                             Console.WriteLine(__changelogs__);
+                            break;
+                        case "cls":
+                            Console.Clear();
                             break;
                         case "echo":
                             string fulltext = string.Join(" ", command[1..]);
