@@ -1,6 +1,9 @@
 #pragma warning disable CA1862
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using NAudio.Wave;
 
 namespace CasualDOS
 {
@@ -11,13 +14,33 @@ namespace CasualDOS
         static readonly string DOSDir = Directory.GetCurrentDirectory() + "\\";
         static string realDir = Directory.GetCurrentDirectory() + "\\";
         static readonly Dictionary<string, string> variables = [];
-        static readonly string __version__ = "CasualDOS [Version 2.0.11]";
-        static readonly string __changelogs__ = @"Version 2.0.11 changelogs
-- Added cls command";
+        static readonly string __version__ = "CasualDOS [Version 2.1.0]";
+        static readonly Random random = new();
+        static readonly string __changelogs__ = @"Version 2.1.0 changelogs
+- Added a secret command
+- Might be planning for if and for commands
+=> Total: 732 lines";
+        static bool secret = false;
+        [DllImport("gdi32.dll")]
+        public static extern bool BitBlt(nint dest, int dx, int dy, int w, int h, nint src, int sx, int sy, uint options);
+        [DllImport("gdi32.dll")]
+        private static extern bool Rectangle(nint dest, int l, int t, int r, int b);
+        [DllImport("gdi32.dll")]
+        private static extern bool Ellipse(nint dest, int l, int t, int r, int b);
+        [DllImport("user32.dll")]
+        public static extern nint GetDC(nint h);
+        [DllImport("user32.dll")]
+        public static extern int ReleaseDC(nint h, nint v);
+        [DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
+        public static int screenX, screenY;
         public static void Main()
         {
+            SetProcessDPIAware();
+            screenX = Screen.PrimaryScreen.Bounds.Width;
+            screenY = Screen.PrimaryScreen.Bounds.Height;
             Console.WriteLine(__version__);
-            Console.WriteLine("Project at https://github.com/justacasualgamer/MS-DOS.");
+            Console.WriteLine("Project at https://github.com/justacasualgamer/CasualDOS.");
             running = true;
             
             while (running)
@@ -509,8 +532,85 @@ namespace CasualDOS
                                 Console.WriteLine("Unknown error.");
                             }
                             break;
+                        case "if":
+                            Console.WriteLine("The if command isn't implemented yet, but expect it to be added soon!");
+                            break;
+                        case "for":
+                            Console.WriteLine("The for command isn't implemented yet, but expect it to be added in a later update!");
+                            break;
                         case "help":
                             Console.WriteLine("List of commands:\r\nHELP  Displays this help message.\r\nMKDIR/MD   Makes a new directory.\r\nRMDIR/RD    Removes an empty directory. Directory must be empty.\r\nECHO  Echoes text on the screen.\r\nMORE    Reads text from a file, one line at a time.\r\nTYPE       Writes all text from a file to the screen.\r\nCD     Changes the current working directory.\r\nEXIT\r\nDEL       Deletes a file.\r\nDIR     Shows all files and directories in the working directory.\r\nSTART        Starts a program.");
+                            break;
+                        case "secret":
+                            secret = true;
+                            Console.WriteLine("Bad command or file name");
+                            break;
+                        case "gdimessingfr101":
+                            if (secret)
+                            {
+                                nint screen = GetDC(0);
+                                var bytebeat1 = new BB1();
+                                using var outputDevice = new WaveOutEvent();
+                                outputDevice.Init(bytebeat1);
+                                outputDevice.Play();
+                                for (int t=0; t<550; t++)
+                                {
+                                    int destX = random.Next(0, screenX);
+                                    int destY = random.Next(0, screenY);
+                                    BitBlt(screen, destX, destY, 30+t, 30+t, screen, destX - random.Next(-1, 2), destY - random.Next(-1, 2), new uint[] { 0x00CC0020, 0x00660046, 0x00550009 }[random.Next(0, 3)]);
+                                }
+                                outputDevice.Stop();
+                                var bytebeat2 = new BB2();
+                                using var outputDevice2 = new WaveOutEvent();
+                                outputDevice2.Init(bytebeat2);
+                                outputDevice2.Play();
+                                for (int t = 0; t < 120; t++)
+                                {
+                                    int destX = random.Next(0, screenX);
+                                    int destY = random.Next(0, screenY);
+                                    BitBlt(screen, 1, 1, screenX, screenY, screen, 0, 0, 0x00CC0020);
+                                }
+                                outputDevice2.Stop();
+                                var bytebeat3 = new BB3();
+                                using var outputDevice3 = new WaveOutEvent();
+                                outputDevice3.Init(bytebeat3);
+                                outputDevice3.Play();
+                                for (int t = 0; t < 125; t++)
+                                {
+                                    int destX = random.Next(0, screenX);
+                                    int destY = random.Next(0, screenY);
+                                    Ellipse(screen, destX, destY, destX + t + 15, destY + t + 15);
+                                    Thread.Sleep(10);
+                                }
+                                outputDevice3.Stop();
+                                var bytebeat4 = new BB4();
+                                using var outputDevice4 = new WaveOutEvent();
+                                outputDevice4.Init(bytebeat4);
+                                outputDevice4.Play();
+                                for (int t = 0; t < 175; t++)
+                                {
+                                    int destX = random.Next(0, screenX);
+                                    int destY = random.Next(0, screenY);
+                                    Rectangle(screen, destX, destY, destX + t + 15, destY + t + 15);
+                                }
+                                outputDevice4.Stop();
+                                var bytebeat5 = new BB5();
+                                using var outputDevice5 = new WaveOutEvent();
+                                outputDevice5.Init(bytebeat5);
+                                outputDevice5.Play();
+                                while (bytebeat5.t < 60500)
+                                {
+                                    if (bytebeat5.t % 7000 >= 4000)
+                                    {
+                                        BitBlt(screen, 0, 0, screenX, screenY, screen, 0, 0, 0x00550009);
+                                    }
+                                }
+                                outputDevice5.Stop();
+                                _ = ReleaseDC(0, screen);
+                            } else
+                            {
+                                Console.WriteLine("Bad command or file name");
+                            }
                             break;
                         case "exit":
                             running = false;
@@ -546,13 +646,88 @@ namespace CasualDOS
                                     process.WaitForExit();
                                 } else
                                 {
-                                    Console.WriteLine("Bad command: " + command[0]);
+                                    Console.WriteLine("Bad command or file name");
                                 }
                             }
                             break;
                     }
                 }
             }
+        }
+    }
+    public class BB1 : IWaveProvider
+    {
+        private uint t = 0;
+        public WaveFormat WaveFormat { get; } = new(8000, 8, 1);
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            for (int i=0; i<count; i++)
+            {
+                byte sample = (byte)(((t * 2) & t >> 6) | (t >> 4));
+                buffer[offset + i] = sample;
+                t++;
+            }
+            return count;
+        }
+    }
+    public class BB2 : IWaveProvider
+    {
+        private uint t = 0;
+        public WaveFormat WaveFormat { get; } = new(8000, 8, 1);
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                byte sample = (byte)((t >> 2) & (t * 100));
+                buffer[offset + i] = sample;
+                t++;
+            }
+            return count;
+        }
+    }
+    public class BB3 : IWaveProvider
+    {
+        private uint t = 0;
+        public WaveFormat WaveFormat { get; } = new(8000, 8, 1);
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                byte sample = (byte)((t * (((t >> 7) % 50 < 25) ? ((t >> 7) % 25) : (25 - ((t >> 7) % 25)))));
+                buffer[offset + i] = sample;
+                t++;
+            }
+            return count;
+        }
+    }
+    public class BB4 : IWaveProvider
+    {
+        private uint t = 0;
+        public WaveFormat WaveFormat { get; } = new(8000, 8, 1);
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                byte sample = (byte)(((t * 18) | (t / 23)) * 1.125);
+                buffer[offset + i] = sample;
+                t++;
+            }
+            return count;
+        }
+    }
+    public class BB5 : IWaveProvider
+    {
+        public uint t = 0;
+        public WaveFormat WaveFormat { get; } = new(8000, 8, 1);
+        public int Read(byte[] buffer, int offset, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                byte sample = (byte)(((t % 7000 < 4000) ? (t / 3) : 0) | ((t < 18000) ? (t * 4) : ((t < 32000) ? (t * 5) : ((t < 46000) ? (t * 6) : ((t < 60000) ? (t * 8) : 0)))));
+                buffer[offset + i] = sample;
+                t++;
+            }
+            return count;
         }
     }
 }
